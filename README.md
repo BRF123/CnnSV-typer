@@ -40,24 +40,11 @@ Run the following program in the custom path <br/>
 * python 1.split_train_test.py img_path all_path/all_txt train_path/train_txt test_path/test_txt reset
 
 ### Training CNN
-* python 2.cuda_normalization.py image_label_list file_dir xdata_file xlabel_file train/test
-* python 31.train_cnn.py xdata_file xlabel_file
-* python X_train 
-  X_train_right = pickle.load( open(sys.argv[2], 'rb'))
-    train_label = pickle.load( open(sys.argv[2], 'rb'))
-    noise = sys.argv[3]
-    noise_label = make_noise(train_label,noise,200)
-    list_lr=float(sys.argv[4])
-    list_batch=int(sys.argv[5])
-    list_epoch=int(sys.argv[6])
-    X_test = pickle.load( open(sys.argv[7], 'rb'))
-    #X_test_right = pickle.load( open(sys.argv[9], 'rb'))
-    test_label = pickle.load( open(sys.argv[8], 'rb'))
+* python 2.cuda_normalization.py image_label_list file_dir X_train train_label train
+* python 31.train_cnn.py X_train train_label
+* python 32.train_cnn_boot.py X_train train_label noise list_lr list_batch list_epoch X_test test_label
 
-### Using a trained network for calling genotype of deletions
+### Using a trained network for calling genotype of deletions & Generating VCF File
+* python 2.cuda_normalization.py image_label_list file_dir X_test test_label test
+* python test_cnn.py X_test test_label
 
-### Extracting deletion information from test results
-* python extract_breakpoint.py
-
-### Generating VCF File
-* python generate_final_vcf.py
