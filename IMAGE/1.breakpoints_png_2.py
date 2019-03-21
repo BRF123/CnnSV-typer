@@ -1,14 +1,14 @@
-#coding:utf-8 
+#coding:utf-8
 
 import pysam
 from PIL import Image
 
 def rearrange_string(read):
-	bases=read.query_sequence   
-	new_bases=''               
+	bases=read.query_sequence
+	new_bases=''
 	new_base_quality=[]
 	
-	bases_checked=0   
+	bases_checked=0
 	read_len_count=0
 	for cigar_portion in read.cigartuples:
 		if cigar_portion[0]==0:
@@ -17,30 +17,30 @@ def rearrange_string(read):
 			for M_num in range(cigar_portion[1]):
 				new_base_quality.append( min(read.query_alignment_qualities[read_len_count],read.query_qualities[read_len_count]) )
 				read_len_count=read_len_count+1
-			bases_checked=bases_checked+cigar_portion[1] 
+			bases_checked=bases_checked+cigar_portion[1]
 
 		elif cigar_portion[0]==1:
-			bases_checked=bases_checked+cigar_portion[1] 
+			bases_checked=bases_checked+cigar_portion[1]
 			for I_num in range(cigar_portion[1]):
 				read_len_count=read_len_count+1
 		elif cigar_portion[0]==2:
 			cigar_base=''
 			for  i in range(cigar_portion[1]):
-				cigar_base=cigar_base+'d'	
+				cigar_base=cigar_base+'d'
 				new_base_quality.append(0)
 			new_bases=new_bases+cigar_base
-		elif cigar_portion[0]==4 : 
+		elif cigar_portion[0]==4 :
 			cigar_base=''
 			for  i in range(cigar_portion[1]):
 				cigar_base=cigar_base+'s'
-				new_base_quality.append(-1)	
+				new_base_quality.append(-1)
 			new_bases=new_bases+cigar_base
 			bases_checked=bases_checked+cigar_portion[1]
 		elif cigar_portion[0]==5 :
 			cigar_base=''
 			for  i in range(cigar_portion[1]):
 				cigar_base=cigar_base+'s'
-				new_base_quality.append(-1)	
+				new_base_quality.append(-1)
 			new_bases=new_bases+cigar_base
 	return new_bases,new_base_quality
 
@@ -51,12 +51,13 @@ def read_can_shown(read,scan_l_pos,scan_r_pos):
 		res=True
 		for cigar_portion in read.cigartuples:
 			if not ((cigar_portion[0]==0) or (cigar_portion[0]==1) or (cigar_portion[0]==2) or (cigar_portion[0]==4) or (cigar_portion[0]==5)):
-				res = False 
+				res = False
 		return res
 	else:
 		return False
 
 def read_corner_shown(read,scan_l_pos,scan_r_pos,new_bases):
+	read_pos1=read.reference_start
 	read_pos2=read.reference_start+read_infered_len(read)
 	if (read_pos1 < scan_l_pos) and (read_pos2 > scan_l_pos):
 		if ('A' or 'G' or 'C' or 'T' or 'a' or 'g' or 'c' or 't') in new_bases[(scan_l_pos-read_pos1):len(new_bases)] :
@@ -109,7 +110,7 @@ def find_next_empty_row(read_list):
 
 def read_to_dictionary(read_package, scan_r_pos,height):
 	dictionary={}
-	read_list=[0 for i in range(height)] 
+	read_list=[0 for i in range(height)]
 	for i in range(height):
 		read_list[i]=[]
 	row_ptr=0
@@ -119,7 +120,7 @@ def read_to_dictionary(read_package, scan_r_pos,height):
 			quality=base_and_read[1]
 			read=base_and_read[2]
 			
-			if read.cigartuples[0][0]==4 : 
+			if read.cigartuples[0][0]==4 :
 				read_pos1=read.reference_start - read.cigartuples[0][1]
 				read_pos2=read_pos1+read_infered_len(read)
 			else:
@@ -134,11 +135,11 @@ def read_to_dictionary(read_package, scan_r_pos,height):
 
 				if is_empty(read_list):
 					read_list[row_ptr].append( (read_pos1,read_pos2,base,quality,is_clipped,is_concordant) )
-				else: 
+				else:
 					row_ptr = get_shortest_tail_row(read_list,scan_r_pos)
 					if read_pos1 >= read_list[row_ptr][-1][1]:
 						read_list[row_ptr].append( (read_pos1,read_pos2,base,quality,is_clipped,is_concordant) )
-					else:                                          
+					else:
 						row_ptr=find_next_empty_row(read_list)
 						read_list[row_ptr].append( (read_pos1,read_pos2,base,quality,is_clipped,is_concordant))
 
@@ -189,7 +190,7 @@ def get_RGB(which_bp,base,quality,is_clipped,is_concordant):
 			red=red+255-6*quality
 			blue=blue+255-6*quality
 			return red, green, blue
-		elif quality==0 or quality== -1: 
+		elif quality==0 or quality== -1:
 			return 255,255,255
 	elif not is_concordant:
 		red=0
@@ -218,27 +219,32 @@ def get_range(b1,b2):
 
 def main():
 
-	vcf_path=''
-	bam_path=''
+	vcf_path=' '
+	bam_path=' '
 	
 	for line in open(vcf_path):
 		print (line)
 		line=line.strip('\n')
 		tmp=line.split(' ')
 		
-		chrom=''
+	#	chrom=str(tmp[0])
+		chrom=' '
 		bk1=int(tmp[0])
 		bk2=int(tmp[1])
 
-		label='2'
+		label='0'
+
+		width=int(bk2-bk1+200)
+		height=100
+		scan_l_pos=bk1-100
+		scan_r_pos=bk2+100
 
 		samfile = pysam.AlignmentFile(bam_path,"rb")
 		
-		img_tmp=''
+		img_tmp=' '
 		img_name=img_tmp+tmp[0]+'_'+tmp[1]+'.'+label+'.cover.png'
-		
-		scan_l_pos=bk1-100
-		scan_r_pos=bk1+100
+		#scan_l_pos=bk1-100
+		#scan_r_pos=bk2+100
 		
 		read_package=[]
 		c=0
